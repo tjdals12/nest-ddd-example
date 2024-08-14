@@ -23,6 +23,7 @@ import {
     DepartmentEmployeeDto,
     DepartmentManagerDto,
 } from './dto/response.dto';
+import { Order } from '@infrastructure/repository/shared-types';
 
 @Injectable()
 export class DepartmentApplicationService {
@@ -96,7 +97,7 @@ export class DepartmentApplicationService {
         const [departments, count] = await Promise.all([
             this.departmentRepository.findMany({
                 paginationOption: { page, limit },
-                orderOption: { departmentNo: 'ASC' },
+                orderOption: { departmentNo: Order.Ascending },
             }),
             this.departmentRepository.count(),
         ]);
@@ -123,7 +124,7 @@ export class DepartmentApplicationService {
             this.departmentManagerRepository.findMany({
                 queryBuilder,
                 paginationOption: { page, limit },
-                orderOption: { employeeNo: 'ASC' },
+                orderOption: { employeeNo: Order.Ascending },
             }),
             this.departmentManagerRepository.count(queryBuilder),
         ]);
@@ -176,7 +177,7 @@ export class DepartmentApplicationService {
             this.departmentEmployeeRepository.findMany({
                 queryBuilder,
                 paginationOption: { page, limit },
-                orderOption: { employeeNo: 'ASC' },
+                orderOption: { employeeNo: Order.Ascending },
             }),
             this.departmentEmployeeRepository.count(queryBuilder),
         ]);

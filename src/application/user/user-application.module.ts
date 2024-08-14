@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserRepositoryModule } from '@infrastructure/repository/user/user-repository.module';
 import { UserDomainModule } from '@domain/user/user-domain.module';
 import { UserApplicationService } from './user-application.service';
-import { CONFIG_SERVICE_KEY } from '@infrastructure/config/interface';
 import { ConfigService } from '@nestjs/config';
 import {
     COMMON_CONFIG_KEY,
@@ -19,7 +18,7 @@ import { UserApplicationController } from './user-application.controller';
     imports: [
         PassportModule,
         JwtModule.registerAsync({
-            inject: [CONFIG_SERVICE_KEY],
+            inject: [ConfigService],
             useFactory: (configService: ConfigService) => {
                 const commonConfig =
                     configService.get<CommonConfig>(COMMON_CONFIG_KEY);

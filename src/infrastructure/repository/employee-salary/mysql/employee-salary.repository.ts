@@ -9,6 +9,7 @@ import {
 import {
     PaginationOption,
     OrderOption,
+    Order,
 } from '@infrastructure/repository/shared-types';
 import { QueryBuilder } from '../query-builder.interface';
 import { EmployeeSalaryRepository } from '../repository.interface';
@@ -52,13 +53,12 @@ export class MysqlEmployeeSalaryRepository extends EmployeeSalaryRepository {
                     subquery.limit(limit);
                 }
                 if (orderOption) {
-                    const { employeeNo, fromDate } = orderOption;
-                    if (employeeNo) {
-                        subquery.addOrderBy('s.emp_no', employeeNo);
-                    }
-                    if (fromDate) {
-                        subquery.addOrderBy('s.from_date', fromDate);
-                    }
+                    Object.entries(orderOption).forEach(([key, value]) => {
+                        subquery.addOrderBy(
+                            `s.${key}`,
+                            value === Order.Ascending ? 'ASC' : 'DESC',
+                        );
+                    });
                 }
                 return subquery;
             }, 's')

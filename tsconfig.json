@@ -22,6 +22,7 @@
             "@core/*": ["src/core/*"],
             "@domain/*": ["src/domain/*"],
             "@infrastructure/*": ["src/infrastructure/*"]
-        }
+        },
+        "typeRoots": ["./node_modules/@types", "./src/@types"]
     }
 }

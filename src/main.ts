@@ -5,7 +5,6 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import { CONFIG_SERVICE_KEY } from '@infrastructure/config/interface';
 import {
     COMMON_CONFIG_KEY,
     CommonConfig,
@@ -13,6 +12,7 @@ import {
 import { AllExceptionFilter } from './core/all-exception.filter';
 import { TransformInterceptor } from '@core/transform.interceptor';
 import { HttpLoggingInterceptor } from './core/http-logging.interceptor';
+import { AccessLogRepository } from '@infrastructure/repository/access-log/repository.interface';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -26,12 +26,14 @@ async function bootstrap() {
     app.enableVersioning({
         type: VersioningType.URI,
     });
-    app.useGlobalInterceptors(new HttpLoggingInterceptor());
+    const accessLogRepository =
+        app.get<AccessLogRepository>(AccessLogRepository);
+    app.useGlobalInterceptors(new HttpLoggingInterceptor(accessLogRepository));
     app.useGlobalInterceptors(new TransformInterceptor());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     const httpAdapterHost = app.get<HttpAdapterHost>(HttpAdapterHost);
     app.useGlobalFilters(new AllExceptionFilter(httpAdapterHost));
-    const configService = app.get<ConfigService>(CONFIG_SERVICE_KEY);
+    const configService = app.get<ConfigService>(ConfigService);
     const commonConfig = configService.get<CommonConfig>(COMMON_CONFIG_KEY);
     if (commonConfig.NODE_ENV !== 'production') {
         const config = new DocumentBuilder()

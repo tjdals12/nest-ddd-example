@@ -4,6 +4,7 @@ import { EmployeeSalaryRepository } from '@infrastructure/repository/employee-sa
 import { PaginatedList } from '@core/base-response.dto';
 import { EmployeeSalaryDto } from './dto/response.dto';
 import { PaginationDto } from '@core/base-request.dto';
+import { Order } from '@infrastructure/repository/shared-types';
 
 @Injectable()
 export class EmployeeSalaryApplicationService {
@@ -26,7 +27,7 @@ export class EmployeeSalaryApplicationService {
             this.employeeSalaryRepository.findMany({
                 queryBuilder,
                 paginationOption: { page, limit },
-                orderOption: { employeeNo: 'ASC' },
+                orderOption: { employeeNo: Order.Ascending },
             }),
             this.employeeSalaryRepository.count(queryBuilder),
         ]);
@@ -53,7 +54,7 @@ export class EmployeeSalaryApplicationService {
             this.employeeSalaryRepository.findMany({
                 queryBuilder,
                 paginationOption: { page, limit },
-                orderOption: { fromDate: 'DESC' },
+                orderOption: { fromDate: Order.Descending },
             }),
             this.employeeSalaryRepository.count(queryBuilder),
         ]);

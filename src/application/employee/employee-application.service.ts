@@ -20,6 +20,7 @@ import {
 } from '@domain/employee/factory';
 import { EmployeeRepository } from '@infrastructure/repository/employee/repository.interface';
 import { EmployeeSalaryRepository } from '@infrastructure/repository/employee-salary/repository.interface';
+import { Order } from '@infrastructure/repository/shared-types';
 
 @Injectable()
 export class EmployeeApplicationService {
@@ -86,7 +87,7 @@ export class EmployeeApplicationService {
         const [employees, count] = await Promise.all([
             this.employeeRepository.findMany({
                 paginationOption: { page, limit },
-                orderOption: { employeeNo: 'ASC' },
+                orderOption: { employeeNo: Order.Ascending },
             }),
             this.employeeRepository.count(),
         ]);

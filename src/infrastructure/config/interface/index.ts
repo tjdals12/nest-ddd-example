@@ -5,10 +5,15 @@ import {
     COMMON_CONFIG_KEY,
 } from './common-config';
 import {
-    DatabaseConfig,
-    DatabaseConfigSchema,
-    DATABASE_CONFIG_KEY,
-} from './database-config';
+    MysqlDatabaseConfig,
+    MysqlDatabaseConfigSchema,
+    MYSQL_DATABASE_CONFIG_KEY,
+} from './mysql-database-config';
+import {
+    MongodbDatabaseConfig,
+    MongodbDatabaseConfigSchema,
+    MONGODB_DATABASE_CONFIG_KEY,
+} from './mongodb-database-config';
 import {
     CacheConfig,
     CacheConfigSchema,
@@ -17,14 +22,14 @@ import {
 
 export interface ConfigVariables {
     [COMMON_CONFIG_KEY]: CommonConfig;
-    [DATABASE_CONFIG_KEY]: DatabaseConfig;
+    [MYSQL_DATABASE_CONFIG_KEY]: MysqlDatabaseConfig;
+    [MONGODB_DATABASE_CONFIG_KEY]: MongodbDatabaseConfig;
     [CACHE_CONFIG_KEY]: CacheConfig;
 }
 
 export const validationSchema = joi.object({
-    ...CommonConfigSchema,
-    ...DatabaseConfigSchema,
-    ...CacheConfigSchema,
+    [COMMON_CONFIG_KEY]: CommonConfigSchema,
+    [MYSQL_DATABASE_CONFIG_KEY]: MysqlDatabaseConfigSchema,
+    [MONGODB_DATABASE_CONFIG_KEY]: MongodbDatabaseConfigSchema,
+    [CACHE_CONFIG_KEY]: CacheConfigSchema,
 });
-
-export const CONFIG_SERVICE_KEY = 'CONFIG_SERVICE';

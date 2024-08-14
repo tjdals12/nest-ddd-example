@@ -7,10 +7,12 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { Request, Response } from 'express';
+import { AccessLogRepository } from '@infrastructure/repository/access-log/repository.interface';
 
 @Injectable()
 export class HttpLoggingInterceptor implements NestInterceptor {
     private logger = new Logger('HTTP');
+    constructor(private accessLogRepository: AccessLogRepository) {}
 
     intercept(
         context: ExecutionContext,
@@ -20,9 +22,21 @@ export class HttpLoggingInterceptor implements NestInterceptor {
         const request = ctx.getRequest<Request>();
         const response = ctx.getResponse<Response>();
 
-        const { method, originalUrl, ip } = request;
+        const { method, originalUrl, ip, path, user } = request;
         const userAgent = request.get('user-agent');
         const { statusCode } = response;
+
+        if (user) {
+            try {
+                this.accessLogRepository.save({
+                    path: `${method} ${path}`,
+                    userId: user.userId,
+                    date: new Date(),
+                });
+            } catch (e) {
+                console.log(e);
+            }
+        }
 
         return next
             .handle()
