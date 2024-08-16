@@ -19,8 +19,8 @@ import {
     DepartmentEmployeeDomainFactory,
 } from '@domain/employee/factory';
 import { EmployeeRepository } from '@infrastructure/repository/employee/repository.interface';
-import { EmployeeSalaryRepository } from '@infrastructure/repository/employee-salary/repository.interface';
 import { Order } from '@infrastructure/repository/shared-types';
+import { Employee } from '@domain/employee/entity';
 
 @Injectable()
 export class EmployeeApplicationService {
@@ -29,11 +29,10 @@ export class EmployeeApplicationService {
         private departmentEmployeeDomainFactory: DepartmentEmployeeDomainFactory,
         private employeeTitleDomainFactory: EmployeeTitleDomainFactory,
         private employeeRepository: EmployeeRepository,
-        private employeeSalaryRepository: EmployeeSalaryRepository,
     ) {}
 
     async create(createEmployeeDto: CreateEmployeeDto): Promise<EmployeeDto> {
-        let employee = null;
+        let employee: Employee = null;
         try {
             employee = this.employeeDomainFactory.create(createEmployeeDto);
         } catch {

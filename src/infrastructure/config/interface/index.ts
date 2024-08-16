@@ -33,3 +33,7 @@ export const validationSchema = joi.object({
     [MONGODB_DATABASE_CONFIG_KEY]: MongodbDatabaseConfigSchema,
     [CACHE_CONFIG_KEY]: CacheConfigSchema,
 });
+
+export abstract class ConfigLoader {
+    abstract load(): Promise<ConfigVariables>;
+}

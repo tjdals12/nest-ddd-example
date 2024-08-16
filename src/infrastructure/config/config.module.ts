@@ -1,17 +1,21 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { validationSchema } from './interface';
-import { loadConfigVariables } from './dotenv';
+import { ConfigLoader } from './interface';
+import { DotenvLoader } from './dotenv';
 
 @Global()
 @Module({
     providers: [
         {
+            provide: ConfigLoader,
+            useClass: DotenvLoader,
+        },
+        {
             provide: ConfigService,
-            useFactory: async () => {
-                const configVariables = await loadConfigVariables(
-                    `${__dirname}/dotenv/.env.${process.env.NODE_ENV}`,
-                );
+            inject: [ConfigLoader],
+            useFactory: async (configLoader: ConfigLoader) => {
+                const configVariables = await configLoader.load();
                 const { error, value: validatedConfigVariables } =
                     validationSchema.validate(configVariables, {
                         abortEarly: true,
