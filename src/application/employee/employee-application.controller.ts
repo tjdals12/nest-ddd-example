@@ -78,7 +78,7 @@ export class EmployeeApplicationController {
     @ApiUnauthorizedException()
     @ApiNotFoundException()
     async get(@Param('employeeNo') employeeNo: number) {
-        return this.employeeApplicationService.get(employeeNo);
+        return this.employeeApplicationService.getEmployee(employeeNo);
     }
 
     @Get()

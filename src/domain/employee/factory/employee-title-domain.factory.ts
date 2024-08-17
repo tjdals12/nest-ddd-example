@@ -3,7 +3,9 @@ import { EmployeeTitle, EmployeeTitleProperty } from '../entity';
 
 @Injectable()
 export class EmployeeTitleDomainFactory {
-    create(args: Pick<EmployeeTitleProperty, 'title' | 'fromDate'>) {
+    create(
+        args: Pick<EmployeeTitleProperty, 'title' | 'fromDate'>,
+    ): EmployeeTitle {
         const { title, fromDate } = args;
         const employeeTitle = new EmployeeTitle({
             type: 'create',

@@ -8,7 +8,7 @@ export class EmployeeDomainFactory {
             EmployeProperty,
             'type' | 'employeeNo' | 'departments' | 'titles' | 'latestSalary'
         >,
-    ) {
+    ): Employee {
         const { firstName, lastName, gender, birthDate, hireDate } = args;
         const employee = new Employee({
             type: 'create',

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { DepartmentManagerDomainService } from './department-manager-domain.service';
 import { DepartmentManagerRepository } from '@infrastructure/repository/department-manager/repository.interface';
-import { departmentManagerRepository } from '@infrastructure/repository/department-manager/__mock__';
+import { mockDepartmentManagerRepository } from '@infrastructure/repository/department-manager/__mock__';
 import { DepartmentManager } from '../entity';
 
 describe('DepartmentManagerDomainService', () => {
@@ -13,7 +13,7 @@ describe('DepartmentManagerDomainService', () => {
         })
             .useMocker((token) => {
                 if (token === DepartmentManagerRepository) {
-                    return departmentManagerRepository;
+                    return mockDepartmentManagerRepository;
                 }
             })
             .compile();
@@ -55,11 +55,18 @@ describe('DepartmentManagerDomainService', () => {
     });
 
     describe('changeManager', () => {
+        let findMany: jest.SpyInstance;
+
+        beforeAll(() => {
+            findMany = jest.spyOn(mockDepartmentManagerRepository, 'findMany');
+        });
+
+        beforeEach(() => {
+            findMany.mockClear();
+        });
+
         it('새로운 매니저를 추가해야 한다.', async () => {
-            jest.spyOn(
-                departmentManagerRepository,
-                'findMany',
-            ).mockResolvedValueOnce([]);
+            findMany.mockResolvedValue([]);
             const managers =
                 await departmentManagerDomainService.changeManager(newManager);
             expect(managers).toHaveLength(1);
@@ -68,10 +75,7 @@ describe('DepartmentManagerDomainService', () => {
         });
 
         it('기존 매니저의 날짜를 수정해야 한다.', async () => {
-            jest.spyOn(
-                departmentManagerRepository,
-                'findMany',
-            ).mockResolvedValueOnce([currentManager]);
+            findMany.mockResolvedValue([currentManager]);
             const managers =
                 await departmentManagerDomainService.changeManager(newManager);
             expect(managers).toHaveLength(2);
@@ -82,10 +86,7 @@ describe('DepartmentManagerDomainService', () => {
         });
 
         it('매니저 이력에 존재한다면 추가하지 않고 날짜만 수정해야 한다.', async () => {
-            jest.spyOn(
-                departmentManagerRepository,
-                'findMany',
-            ).mockResolvedValueOnce([currentManager, prevManager]);
+            findMany.mockResolvedValue([currentManager, prevManager]);
             const managers =
                 await departmentManagerDomainService.changeManager(newManager);
             expect(managers).toHaveLength(2);

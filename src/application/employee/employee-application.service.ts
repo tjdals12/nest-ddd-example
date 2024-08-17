@@ -19,6 +19,7 @@ import {
     DepartmentEmployeeDomainFactory,
 } from '@domain/employee/factory';
 import { EmployeeRepository } from '@infrastructure/repository/employee/repository.interface';
+import { DepartmentRepository } from '@infrastructure/repository/department/repository.interface';
 import { Order } from '@infrastructure/repository/shared-types';
 import { Employee } from '@domain/employee/entity';
 
@@ -29,6 +30,7 @@ export class EmployeeApplicationService {
         private departmentEmployeeDomainFactory: DepartmentEmployeeDomainFactory,
         private employeeTitleDomainFactory: EmployeeTitleDomainFactory,
         private employeeRepository: EmployeeRepository,
+        private departmentRepository: DepartmentRepository,
     ) {}
 
     async create(createEmployeeDto: CreateEmployeeDto): Promise<EmployeeDto> {
@@ -69,7 +71,7 @@ export class EmployeeApplicationService {
         return employeeDto;
     }
 
-    async get(employeeNo: number): Promise<EmployeeDto> {
+    async getEmployee(employeeNo: number): Promise<EmployeeDto> {
         const employeeQueryBuilder = this.employeeRepository.getQueryBuilder();
         employeeQueryBuilder.employeeNo.equals(employeeNo);
         const employee =
@@ -104,24 +106,40 @@ export class EmployeeApplicationService {
         employeeNo: number,
         changeDepartmentDto: ChangeDepartmentDto,
     ): Promise<EmployeeDto> {
-        const queryBuilder = this.employeeRepository.getQueryBuilder();
-        queryBuilder.employeeNo.equals(employeeNo);
-        const employee = await this.employeeRepository.findOne(queryBuilder);
+        const employeeQueryBuilder = this.employeeRepository.getQueryBuilder();
+        employeeQueryBuilder.employeeNo.equals(employeeNo);
+        const employee =
+            await this.employeeRepository.findOne(employeeQueryBuilder);
         if (employee === null) throw new NotFoundException();
+
+        const { departmentNo, fromDate } = changeDepartmentDto;
+        const departmentQueryBuilder =
+            this.departmentRepository.getQueryBuilder();
+        departmentQueryBuilder.departmentNo.equals(departmentNo);
+        const department = await this.departmentRepository.findOne(
+            departmentQueryBuilder,
+        );
+        if (department === null) throw new BadRequestException();
+
         try {
             const departmentEmployee =
-                await this.departmentEmployeeDomainFactory.create(
-                    changeDepartmentDto,
-                );
+                await this.departmentEmployeeDomainFactory.create({
+                    departmentNo: department.departmentNo,
+                    departmentName: department.departmentName,
+                    fromDate,
+                });
+
             employee.changeDepartment(departmentEmployee);
         } catch {
             throw new BadRequestException();
         }
+
         try {
             await this.employeeRepository.update(employee);
         } catch {
             throw new InternalServerErrorException();
         }
+
         const employeeDto = new EmployeeDto(employee);
         return employeeDto;
     }
@@ -134,18 +152,21 @@ export class EmployeeApplicationService {
         queryBuilder.employeeNo.equals(employeeNo);
         const employee = await this.employeeRepository.findOne(queryBuilder);
         if (employee === null) throw new NotFoundException();
+
         try {
             const employeeTitle =
-                await this.employeeTitleDomainFactory.create(changeTitleDto);
+                this.employeeTitleDomainFactory.create(changeTitleDto);
             employee.changeTitle(employeeTitle);
         } catch {
             throw new BadRequestException();
         }
+
         try {
             await this.employeeRepository.update(employee);
         } catch {
             throw new InternalServerErrorException();
         }
+
         const employeeDto = new EmployeeDto(employee);
         return employeeDto;
     }

@@ -7,6 +7,7 @@ import { DepartmentManagerRepositoryModule } from '@infrastructure/repository/de
 import { DepartmentManagerDomainModule } from '@domain/department-manager/department-manager-domain.module';
 import { DepartmentEmployeeRepositoryModule } from '@infrastructure/repository/department-employee/department-employee-repository.module';
 import { DepartmentEmployeeDomainModule } from '@domain/department-employee/department-employee-domain.module';
+import { EmployeeRepositoryModule } from '@infrastructure/repository/employee/employee-repository.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { DepartmentEmployeeDomainModule } from '@domain/department-employee/depa
         DepartmentManagerDomainModule,
         DepartmentEmployeeRepositoryModule,
         DepartmentEmployeeDomainModule,
+        EmployeeRepositoryModule,
     ],
     providers: [DepartmentApplicationService],
     controllers: [DepartmentApplicationController],

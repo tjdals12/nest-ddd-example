@@ -24,6 +24,7 @@ import {
     DepartmentManagerDto,
 } from './dto/response.dto';
 import { Order } from '@infrastructure/repository/shared-types';
+import { EmployeeRepository } from '@infrastructure/repository/employee/repository.interface';
 
 @Injectable()
 export class DepartmentApplicationService {
@@ -35,6 +36,7 @@ export class DepartmentApplicationService {
         private departmentManagerDomainService: DepartmentManagerDomainService,
         private departmentManagerRepository: DepartmentManagerRepository,
         private departmentEmployeeRepository: DepartmentEmployeeRepository,
+        private employeeRepository: EmployeeRepository,
     ) {}
 
     async create(
@@ -45,7 +47,7 @@ export class DepartmentApplicationService {
             department =
                 this.departmentDomainFactory.create(createDepartmentDto);
             await this.departmentDomainService.checkDuplicate(department);
-        } catch {
+        } catch (e) {
             throw new BadRequestException();
         }
         try {
@@ -68,7 +70,7 @@ export class DepartmentApplicationService {
         if (department === null) throw new NotFoundException();
         try {
             department.update(updateDepartmentDto);
-        } catch {
+        } catch (e) {
             throw new BadRequestException();
         }
         try {
@@ -145,20 +147,46 @@ export class DepartmentApplicationService {
         departmentNo: string,
         changeManagerDto: ChangeManagerDto,
     ): Promise<DepartmentManagerDto[]> {
-        const { employeeNo, fromDate } = changeManagerDto;
-        const newDepartmentManager =
-            await this.departmentManagerDomainFactory.create({
-                departmentNo,
-                employeeNo,
-                fromDate,
-            });
-        const updatedDepartmentManagers =
-            await this.departmentManagerDomainService.changeManager(
-                newDepartmentManager,
-            );
-        await this.departmentManagerRepository.updateAll(
-            updatedDepartmentManagers,
+        const departmentQueryBuilder =
+            this.departmentRepository.getQueryBuilder();
+        departmentQueryBuilder.departmentNo.equals(departmentNo);
+        const department = await this.departmentRepository.findOne(
+            departmentQueryBuilder,
         );
+        if (department === null) throw new NotFoundException();
+
+        const { employeeNo, fromDate } = changeManagerDto;
+        const employeeQueryBuilder = this.employeeRepository.getQueryBuilder();
+        employeeQueryBuilder.employeeNo.equals(employeeNo);
+        const employee =
+            await this.employeeRepository.findOne(employeeQueryBuilder);
+        if (employee === null) throw new BadRequestException();
+
+        let updatedDepartmentManagers;
+        try {
+            const newDepartmentManager =
+                this.departmentManagerDomainFactory.create({
+                    departmentNo,
+                    employeeNo: employee.employeeNo,
+                    firstName: employee.firstName,
+                    lastName: employee.lastName,
+                    fromDate,
+                });
+            updatedDepartmentManagers =
+                await this.departmentManagerDomainService.changeManager(
+                    newDepartmentManager,
+                );
+        } catch {
+            throw new BadRequestException();
+        }
+
+        try {
+            await this.departmentManagerRepository.updateAll(
+                updatedDepartmentManagers,
+            );
+        } catch {
+            throw new InternalServerErrorException();
+        }
         const departmentManagerDtos = updatedDepartmentManagers.map(
             (departmentManager) => new DepartmentManagerDto(departmentManager),
         );

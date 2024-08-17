@@ -4,12 +4,14 @@ import { EmployeeRepositoryModule } from '@infrastructure/repository/employee/em
 import { EmployeeApplicationService } from './employee-application.service';
 import { EmployeeApplicationController } from './employee-application.controller';
 import { EmployeeSalaryRepositoryModule } from '@infrastructure/repository/employee-salary/employee-salary-repository.module';
+import { DepartmentRepositoryModule } from '@infrastructure/repository/department/department-repository.module';
 
 @Module({
     imports: [
         EmployeeDomainModule,
         EmployeeRepositoryModule,
         EmployeeSalaryRepositoryModule,
+        DepartmentRepositoryModule,
     ],
     providers: [EmployeeApplicationService],
     controllers: [EmployeeApplicationController],

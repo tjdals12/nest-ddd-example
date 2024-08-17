@@ -42,6 +42,7 @@
         "cookie-parser": "^1.4.6",
         "dotenv": "^16.4.5",
         "helmet": "^7.1.0",
+        "jest-mock-extended": "^3.0.7",
         "joi": "^17.13.3",
         "moment": "^2.30.1",
         "mongoose": "^8.5.3",

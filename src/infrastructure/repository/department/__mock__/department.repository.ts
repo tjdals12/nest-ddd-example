@@ -1,11 +1,8 @@
 import { DepartmentRepository } from '../repository.interface';
 import { QueryBuilder } from '../query-builder.interface';
+import { mock } from 'jest-mock-extended';
 
-export const departmentRepository: DepartmentRepository = {
-    getQueryBuilder: jest.fn().mockReturnValue(new QueryBuilder()),
-    findOne: jest.fn(),
-    save: jest.fn(),
-    update: jest.fn(),
-    findMany: jest.fn(),
-    count: jest.fn(),
-};
+const mockDepartmentRepository = mock<DepartmentRepository>();
+mockDepartmentRepository.getQueryBuilder.mockReturnValue(new QueryBuilder());
+
+export { mockDepartmentRepository };
