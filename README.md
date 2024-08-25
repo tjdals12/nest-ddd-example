@@ -8,11 +8,12 @@ A example of DDD(Domain Driven Development) implementation using nestjs framewor
     -   [DTO](#application-dto)
     -   [Service](#application-service)
     -   [Controller](#application-controller)
+    -   [Structure](#application-structure)
 -   [Domain](#domain)
     -   [Entity](#domain-entity)
     -   [Value Object](#domain-value-object)
     -   [Service](#domain-service)
-    -   [Factory](#domain-factory)
+    -   [Structure](#domain-structure)
 -   [Infrastructure](#infrastructure)
     -   [Config](#infrastructure-config)
         -   [Types & Validation](#infrastructure-config-types-validation)
@@ -184,9 +185,138 @@ export class EmployeeController {
 }
 ```
 
+<div id="application-structure"></div>
+
+### Structure
+
+```
+./application
+└── [domain_name]
+    ├── dto
+    │   ├── request.dto.ts
+    │   └── response.dto.ts
+    ├── [domain_name]-application.controller.ts
+    ├── [domain_name]-application.module.ts
+    ├── [domain_name]-application.service.ts
+    └── [domain_name]-application.spec.ts
+```
+
 ## Domain
 
 도메인과 관련된 객체들이 위치하는 레이어이다. 도메인 객체는 도메인과 관련된 중요한 규칙을 포함하고 있으며 특징에 따라 Entity, Value Object, Factory, Service로 분류된다. 이곳에는 주로 유닛 테스트를 작성한다.
+
+<div id="domain-entity"></div>
+
+### Entity
+
+Entity는 자신의 생명주기 동안 형태와 내용이 급격하게 바뀔수도 있지만 연속성은 유지해야 한다. 그렇기 때문에 객체의 형태와 이력에 관계없이 각 객체를 구별하는 수단을 정의해야 한다. 이러한 식별성은 데이터의 특정 속성이나 여러 속성의 조합으로 나타내기도 한다. 또는 데이터의 속성으로 구성되는 실질적인 고유키가 없다면 숫자나 문자열과 같은 유일한 값을 추가하여 나타내기도 하는데 이러한 ID 값은 애플리케이션에 따라서 사용자에게 보여지지 않을 수도 있다.
+
+Entity는 속성이 같지 않아도 고유한 키를 통해 서로 동일한 것으로 나타낸다. 예를 들어 사원과 부서라는 Entity가 있다고 가정해보자. 사원은 사원 번호가 고유한 키 값이고 직급, 이름, 성별, 연락처 등의 속성이 있을 수 있다. 부서는 부서 번호가 고유한 키 값 이고 부서 이름, 부서 생성일 등의 속성이 있을 수 있다.
+
+```typescript
+// employee/entity/employee.ts
+export class Employee {
+    employeeNo: string;
+    name: string;
+    title: string;
+    gender: string;
+    contract: string;
+}
+
+// department/entity/department.ts
+export class Department {
+    departmentNo: string;
+    name: string;
+    createdAt: Date;
+}
+```
+
+부서에 속해 있는 사원 목록을 조회하기 위해서 부서에 사원 목록 속성을 추가한다. 근데 필요한 정보는 사원 번호와 이름이라고 했을 때 별도의 엔티티를 추가할 수 있다. 이 엔티티는 사원 Entity와는 속성이 다르지만 사원 번호를 통해 식별이 가능하기 때문에 둘은 개념적으로 동일하다.
+
+어떤 Entity가 다른 Entity를 참조해야 할 때 동일하게 식별할 수만 있다면 필요한 속성만 정의한 새로운 Entity를 만들어서 참조하는 방식을 사용할 수도 있다.
+
+```typescript
+// department/entity/department-employee.ts
+export class DepartmentEmployee {
+    employeeNo: string;
+    name: string;
+}
+
+// department/entity/department.ts
+export class Department {
+    departmentNo: string;
+    name: string;
+    createdAt: Date;
+    employees: DepartmentEmployee[];
+}
+```
+
+하지만 이러한 방식을 영속성과 관련지어 생각하면 안된다. DepartmentEmployee라는 새로운 Entity가 추가 되었다고 해서 데이터베이스에 이와 관련된 새로운 테이블을 추가되어야 하는 것은 아니기 때문이다.
+
+<div id="domain-value-object"></div>
+
+### Value Object
+
+Value Object는 개념적 식별성을 갖지 않으면서 도메인의 서술적 측면(사물 또는 사물의 어떤 특징)을 나타낸다. Value Object는 어떤 요소의 속성에만 관심이 있기 때문에 어떤 식별성도 부여하지 않는다. 그래서 Value Objects는 Entity를 유지하는 데 필요한 설계상의 복잡성을 낮출 수 있다.
+
+Value Object의 형태는 단순할 수도 있지만 다른 여러 객체를 조립한 것일 수도 있고 Entity를 참조할 수도 있다. 또한 Value Object는 여러 객체 간에 오가는 메시지의 매개변수로 전달되기도 하며 특정 연산에서 사용하기 위한 목적으로만 생성되기도 하고 Entity의 속성으로 사용되기도 한다.
+
+```typescript
+// person/vo/name.ts
+export class Name {
+    readonly firstName: string;
+    readonly lastName: string;
+}
+
+// person/vo/address.ts
+export class Address {
+    readonly province: string;
+    readonly city: string;
+    readonly district: string;
+    readonly street: string;
+    readonly buildingNumber: number;
+    readonly zipCode: string;
+}
+
+// person/entity/person.ts
+export class Person {
+    id: string;
+    name: Name;
+    address: Address;
+}
+```
+
+Value Object를 다른 여러 객체에서 사용하기 위해서 사본을 만들거나 공유하는 방식을 사용한다. 사본은 Value Object를 공유하기 위한 가장 단순한 방법이지만 많은 리소스를 차지할 수 있다. 공유는 하나의 인스턴스를 여러 객체에서 참조하는 방식으로 최적화할 수 있지만 변경 사항이 여러 객체에게 영향을 끼칠 수 있기 때문에 불변적으로 다루어야 한다.
+
+Value Object는 경우에 따라서 값을 변경하는 것을 허용할 수 있지만 이렇게 되면 공유해서는 안된다. Value Object는 가급적 변하지 않게 설계해야 한다. 그래야 다루기 쉽고 설계가 단순해지기 때문이다.
+
+<div id="domain-service"></div>
+
+### Service
+
+Service는 특정 Entity나 Value Object에서 찾기 힘든 중요한 도메인 연산을 나타낸다. 도메인 연산은 보통 여러 도메인 객체를 모아 그것들을 조율해 발생하는 어떤 활동이나 행동이다. 이러한 연산을 여러 도메인 객체에 퍼뜨리면 서로에 대한 의존성을 생기고 단독으로 이해할 수 있는 개념을 복잡하게 만든다. 또한 여러 도메인 객체에 분산되면 도메인 객체의 책임이 세밀해지기 때문에 도메인 규칙이 응용 계층에 쉽게 노출될 수 있다. Service는 다른 도메인 객체와 달리 상태를 캡슐화 하지 않고 매개변수와 결과로 도메인 객체를 사용한다.
+
+Service를 적절히 도입하면 응용 계층과 같이 도메인 계층과 상호작용하는 게층과의 경계를 선명하게 하는데 도움이 될 수 있다. 간혹 도메인 계층의 서비스와 응용 계층의 서비스를 동일하게 생각하기도 하는데 이를 분명하게 구분할 필요가 있다.
+
+<div id="domain-structure"></div>
+
+### Structure
+
+```
+└── domain
+    ├── [domain_name]-domain.module.ts
+    ├── entity
+    │   ├── [domain_name]-domain.entity.spec.ts
+    │   ├── [domain_name]-domain.entity.ts
+    │   └── index.ts
+    ├── factory
+    │   ├── [domain_name]-domain.factory.ts
+    │   └── index.ts
+    └── service
+        ├── [domain_name]-domain.service.spec.ts
+        ├── [domain_name]-domain.service.ts
+        └── index.ts
+```
 
 ## Infrastructure
 
@@ -558,7 +688,7 @@ export class EmployeeService {
 
 ```
 repository
-├── domain
+├── [domain-name]
 │   ├── __mock__
 │   │   ├── repository.ts
 │   │   └── index.ts
@@ -569,7 +699,7 @@ repository
 │   │   └── index.ts
 │   ├── repository.interface.ts
 │   ├── query-builder.interface.ts
-└── └── module.ts
+│   └── module.ts
 └── repository.module.ts
 ```
 
